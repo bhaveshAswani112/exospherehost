@@ -1,13 +1,19 @@
 from exospherehost import Runtime, BaseNode
-from typing import Any
-import os
+from pydantic import BaseModel
 
 class SampleNode(BaseNode):
-    async def execute(self, inputs: dict[str, Any]) -> dict[str, Any]:
-        print(inputs)
-        return {"message": "success"}
+    class Inputs(BaseModel):
+        name: str
 
-runtime = Runtime("SampleNamespace", os.getenv("EXOSPHERE_STATE_MANAGER_URI", "http://localhost:8000"), os.getenv("EXOSPHERE_API_KEY", ""))
+    class Outputs(BaseModel):
+        message: str
 
-runtime.connect([SampleNode()])
-runtime.start()
+    async def execute(self) -> Outputs:
+        print(self.inputs)
+        return self.Outputs(message="success")
+
+Runtime(
+    namespace="SampleNamespace", 
+    name="SampleRuntime",
+    nodes=[SampleNode]
+).start()
